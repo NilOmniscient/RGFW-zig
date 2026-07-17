@@ -1,67 +1,47 @@
 const std = @import("std");
 
+const rgfw_macros = [_][]const u8{
+    "-D RGFW_OPENGL", "-D RGFW_VULKAN", "-D RGFW_EGL",
+    "-D RGFW_EXPORT",
+};
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const opengl = b.option(bool, "opengl", "enables opengl") orelse false;
-    const wayland = b.option(bool, "wayland", "enables wayland") orelse false;
-    const vulkan = b.option(bool, "vulkan", "enables vulkan") orelse false;
+    const rgfw_src = b.dependency("rgfw", .{});
 
-    const cRGFW = b.addTranslateC(.{
+    // First, build the C lib.
+    const rgfw_cmod = b.createModule(.{
         .link_libc = true,
-        .target = target,
         .optimize = optimize,
-        .root_source_file = b.path("RGFW.h")
+        .target = target,
+        .root_source_file = b.path("src/rgfw.zig"),
     });
-    cRGFW.addIncludePath(b.path("."));
+    rgfw_cmod.addCSourceFile(.{
+        .file = b.path("src/RGFW.c"),
+        .flags = &rgfw_macros,
+    });
+    rgfw_cmod.addIncludePath(rgfw_src.path(""));
 
-    cRGFW.defineCMacro("RGFW_IMPLEMENTATION", "");
-    if (opengl) cRGFW.defineCMacro("RGFW_OPENGL", "");
-    if (wayland) cRGFW.defineCMacro("RGFW_WAYLAND", "");
-    if (vulkan) cRGFW.defineCMacro("RGFW_VULKAN", "");
+    // Need to link required libs
+    rgfw_cmod.linkSystemLibrary("X11", .{});
+    rgfw_cmod.linkSystemLibrary("m", .{});
+    rgfw_cmod.linkSystemLibrary("Xrandr", .{});
+    rgfw_cmod.linkSystemLibrary("GL", .{});
 
-    const mod = cRGFW.addModule("RGFW");
-    
-    switch (target.result.os.tag) {
-        .linux, .freebsd, .openbsd, .dragonfly => {
-            if (opengl) mod.linkSystemLibrary("GL", .{.needed = true});
-            if (vulkan) mod.linkSystemLibrary("vulkan", .{.needed = true});
-            if (wayland) {
-                if (opengl) {
-                    mod.linkSystemLibrary("EGL", .{.needed = true});
-                    mod.linkSystemLibrary("wayland-egl", .{.needed = true});
-                }
-                mod.addCSourceFiles(.{
-                    .files = &.{
-                        "xdg/xdg-shell.c",
-                        "xdg/xdg-toplevel-icon-v1.c",
-                        "xdg/xdg-output-unstable-v1.c",
-                        "xdg/xdg-decoration-unstable-v1.c",
-                        "xdg/relative-pointer-unstable-v1.c",
-                        "xdg/pointer-constraints-unstable-v1.c",
-                    }
-                });
-                mod.addIncludePath(b.path("xdg"));
-                mod.linkSystemLibrary("wayland-client", .{.needed = true});
-                mod.linkSystemLibrary("wayland-cursor", .{.needed = true});
-                mod.linkSystemLibrary("xkbcommon", .{.needed = true});
-            }
-            else {
-                mod.linkSystemLibrary("x11", .{.needed = true});
-                mod.linkSystemLibrary("xrandr", .{.needed = true});
-            }
-        },
-        .macos => {
-            mod.linkFramework("CoreVideo", .{.needed = true});
-            mod.linkFramework("Cocoa", .{.needed = true});
-            mod.linkFramework("IOKit", .{.needed = true});
-            if (opengl) mod.linkFramework("OpenGL", .{.needed = true});
-        },
-        .windows => {
-            mod.linkSystemLibrary("gdi32", .{.needed = true});
-            if (opengl) mod.linkSystemLibrary("opengl32", .{.needed = true});
-        },
-        else => {}
-    }
+    const exe = b.addExecutable(.{
+        .name = "RGFW_test",
+        .root_module = b.createModule(.{
+            .optimize = optimize,
+            .target = target,
+            .root_source_file = b.path("src/main.zig"),
+            .imports = &.{
+                .{ .name = "rgfw", .module = rgfw_cmod },
+            },
+        }),
+        .use_llvm = true,
+        .use_lld = true,
+    });
+    b.installArtifact(exe);
 }
