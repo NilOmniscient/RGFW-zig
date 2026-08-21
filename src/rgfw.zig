@@ -1,4 +1,4 @@
-const std = @import("std");
+pub const std = @import("std");
 
 // Public functions
 pub fn init(className: [*:0]const u8, flags: InitFlags) !void {
@@ -12,16 +12,38 @@ pub fn createWindow(name: [*:0]const u8, x: i32, y: i32, w: i32, h: i32, flags: 
     return RGFW_createWindow(name, x, y, w, h, flags);
 }
 
-// Enums
+// Bit Flags
 pub const InitFlags = packed struct(u8) {
-    OpenGL: bool = false,
-    EGL: bool = false,
-    Vulkan: bool = false,
-    X11: bool = false,
+    opengl: bool = false,
+    egl: bool = false,
+    vulkan: bool = false,
+    x11: bool = false,
     _padding: u4 = 0,
 };
+pub const WindowFlags = packed struct(i32) {
+    no_border: bool = false,
+    no_resize: bool = false,
+    allow_dnd: bool = false,
+    hide_mouse: bool = false,
+    fullscreen: bool = false,
+    translucent: bool = false,
+    center: bool = false,
+    raw_mouse: bool = false,
+    scale_to_monitor: bool = false,
+    hide: bool = false,
+    maximize: bool = false,
+    center_cursor: bool = false,
+    floating: bool = false,
+    focus_on_show: bool = false,
+    minimize: bool = false,
+    focus: bool = false,
+    capture_mouse: bool = false,
+    opengl: bool = false,
+    egl: bool = false,
+};
 
-const Format = enum(u8) {
+// Enums
+pub const Format = enum(u8) {
     RGB8 = 0,
     BGR8,
     RGBA8,
@@ -29,13 +51,13 @@ const Format = enum(u8) {
     BGRA8,
     ABGR8,
 };
-const ModeRequest = enum(u8) {
+pub const ModeRequest = enum(u8) {
     MonitorScale = RGFW_BIT(0),
     MonitorRefresh = RGFW_BIT(1),
     MonitorRGB = RGFW_BIT(2),
     MonitorAll = RGFW_BIT(0) | RGFW_BIT(1) | RGFW_BIT(2),
 };
-const Key = enum(u8) {
+pub const Key = enum(u8) {
     Null = 0,
     Escape = '\x1B',
     Backtick = '`',
@@ -160,7 +182,7 @@ const Key = enum(u8) {
     World1,
     World2,
 };
-const MouseButton = enum(u8) {
+pub const MouseButton = enum(u8) {
     Left = 0,
     Middle,
     Right,
@@ -170,7 +192,7 @@ const MouseButton = enum(u8) {
     Misc4,
     Misc5,
 };
-const Keymod = enum(u8) {
+pub const Keymod = enum(u8) {
     CapsLock,
     NumLock,
     Control,
@@ -179,13 +201,13 @@ const Keymod = enum(u8) {
     Super,
     ScrollLock,
 };
-const DNDActionType = enum(u8) {
+pub const DNDActionType = enum(u8) {
     None = 0,
     Enter,
     Move,
     Exit,
 };
-const DataTransferType = enum(u8) {
+pub const DataTransferType = enum(u8) {
     Next = 0,
     Text,
     File,
@@ -193,7 +215,7 @@ const DataTransferType = enum(u8) {
     Image,
     Unknown,
 };
-const EventType = enum(u8) {
+pub const EventType = enum(u8) {
     None = 0,
     KeyPressed,
     KeyReleased,
@@ -220,22 +242,103 @@ const EventType = enum(u8) {
     MonitorConnected,
     MonitorDisconnected,
 };
+pub const EventWait = enum(i32) {
+    NoWait = 0,
+    WaitNext = -1,
+};
+pub const Icon = enum(u8) {
+    Taskbar = RGFW_BIT(0),
+    Window = RGFW_BIT(1),
+    Both = RGFW_BIT(0) | RGFW_BIT(1),
+};
+pub const MouseIcon = enum(u8) {
+    Normal = 0,
+    Arrow,
+    IBeam,
+    Text = 2,
+    Crosshair,
+    PointingHand,
+    ResizeEW,
+    ResizeNS,
+    ResizeNWSE,
+    ResizeNESW,
+    ResizeNW,
+    ResizeN,
+    ResizeNE,
+    ResizeE,
+    ResizeSE,
+    ResizeS,
+    ResizeSW,
+    ResizeW,
+    ResizeAll,
+    NotAllowed,
+    Wait,
+    Progress,
+};
+pub const FlashRequest = enum(u8) {
+    Cancel = 0,
+    Briefly,
+    UntilFocused,
+};
+pub const DebugType = enum(u8) {
+    Error = 0,
+    Warning,
+    Info,
+};
+pub const ErrorCode = enum(u8) {
+    NoError = 0,
+    ErrOutOfMemory,
+    ErrOpenGLContext,
+    ErrEGLContext,
+    ErrWayland,
+    ErrX11,
+    ErrDirectXContext,
+    ErrIOKit,
+    ErrClipboard,
+    ErrFailedFuncLoad,
+    ErrBuffer,
+    ErrMetal,
+    ErrPlatform,
+    ErrEventQueue,
+    ErrNoInit,
+    InfoWindow,
+    InfoBuffer,
+    InfoGlobal,
+    InfoOpenGL,
+    WarningWayland,
+    WarningOpenGL,
+};
+pub const GLReleaseBehavior = enum(i32) {
+    Flush = 0,
+    None,
+};
+pub const GLProfile = enum(i32) {
+    Core = 0,
+    ForwardCompatibility,
+    Compatibility,
+    ES,
+    Web,
+};
+pub const GLRenderer = enum(i32) {
+    Accelerated = 0,
+    Software,
+};
 
 // Structs
-const ColorLayout = extern struct {
+pub const ColorLayout = extern struct {
     r: i32,
     g: i32,
     b: i32,
     a: i32,
     channels: u32,
 };
-const GammaRamp = extern struct {
+pub const GammaRamp = extern struct {
     red: [*]u16,
     green: [*]u16,
     blue: [*]u16,
     count: usize,
 };
-const MonitorMode = extern struct {
+pub const MonitorMode = extern struct {
     w: i32,
     h: i32,
     refreshRate: f32,
@@ -244,7 +347,7 @@ const MonitorMode = extern struct {
     green: u8,
     src: *anyopaque,
 };
-const Monitor = extern struct {
+pub const Monitor = extern struct {
     x: i32,
     y: i32,
     name: [128]u8,
@@ -257,52 +360,190 @@ const Monitor = extern struct {
     userPtr: *anyopaque,
     node: *MonitorNode,
 };
-const DataTransfer = extern struct {
+pub const DataTransfer = extern struct {
     data: [*]u8,
     length: usize,
     type: DataTransferType,
 };
-const DataDropNode = extern struct {
+pub const DataDropNode = extern struct {
     data: [*]u8,
     length: usize,
     type: DataTransferType,
     next: *DataDropNode,
 };
-const CommonEvent = extern struct {
+pub const CommonEvent = extern struct {
     type: EventType,
     win: *Window,
 };
-const WindowFocusEvent = extern struct {
+pub const WindowFocusEvent = extern struct {
     type: EventType,
     win: *Window,
     state: bool,
 };
-const MouseButtonEvent = extern struct {
+pub const MouseButtonEvent = extern struct {
     type: EventType,
     win: *Window,
     value: MouseButton,
     state: bool,
 };
-const MouseDeltaEvent = extern struct {
+pub const MouseDeltaEvent = extern struct {
     type: EventType,
     win: *Window,
     x: f32,
     y: f32,
 };
-
-// TODO: Pick up here
+pub const MouseMotionEvent = extern struct {
+    type: EventType,
+    win: *Window,
+    x: i32,
+    y: i32,
+    inWindow: bool,
+};
+pub const KeyEvent = extern struct {
+    type: EventType,
+    win: *Window,
+    value: Key,
+    repeat: bool,
+    mod: Keymod,
+    state: bool,
+};
+pub const KeyCharEvent = extern struct {
+    type: EventType,
+    win: *Window,
+    value: u32,
+};
+pub const DataDropEvent = extern struct {
+    type: EventType,
+    win: *Window,
+    value: *DataDropNode,
+};
+pub const DataDragEvent = extern struct {
+    type: EventType,
+    win: *Window,
+    x: i32,
+    y: i32,
+    action: DNDActionType,
+    data_type: DataTransferType,
+};
+pub const ScaleUpdateEvent = extern struct {
+    type: EventType,
+    win: *Window,
+    x: f32,
+    y: f32,
+};
+pub const MonitorEvent = extern struct {
+    type: EventType,
+    win: *Window,
+    monitor: *Monitor,
+    state: bool,
+};
+pub const WindowUpdateEvent = extern struct {
+    type: EventType,
+    win: *Window,
+    x: i32,
+    y: i32,
+    w: i32,
+    h: i32,
+};
+pub const Event = extern union {
+    common: CommonEvent,
+    focus: WindowFocusEvent,
+    update: WindowUpdateEvent,
+    button: MouseButtonEvent,
+    delta: MouseDeltaEvent,
+    mouse: MouseMotionEvent,
+    key: KeyEvent,
+    key_char: KeyCharEvent,
+    drop: DataDropEvent,
+    drag: DataDragEvent,
+    scale: ScaleUpdateEvent,
+    monitor: MonitorEvent,
+};
+pub const DebugInfo = extern struct {
+    type: DebugType,
+    code: ErrorCode,
+    msg: [*c]const u8,
+};
+pub const GLHints = extern struct {
+    stencil: i32,
+    samples: i32,
+    stereo: i32,
+    aux_buffers: i32,
+    double_buffer: bool,
+    red: i32,
+    green: i32,
+    blue: i32,
+    alpha: i32,
+    depth: i32,
+    accum_red: i32,
+    accum_green: i32,
+    accum_blue: i32,
+    accum_alpha: i32,
+    srgb: bool,
+    robustness: bool,
+    debug: bool,
+    no_error: bool,
+    release_behavior: GLReleaseBehavior,
+    profile: GLProfile,
+    major: i32,
+    minor: i32,
+    share: *GLContext,
+    share_egl: *EGLContext,
+    renderer: GLRenderer,
+};
 
 // Opaques
-const Info = opaque {};
-const Window = opaque {};
-const WindowSrc = opaque {};
-const NativeImage = opaque {};
-const Surface = opaque {};
-const MonitorNode = opaque {};
+pub const Info = opaque {};
+pub const Window = opaque {};
+pub const WindowSrc = opaque {};
+pub const NativeImage = opaque {};
+pub const Surface = opaque {};
+pub const MonitorNode = opaque {};
+pub const GLContext = opaque {};
+pub const EGLContext = opaque {};
 
-// Start External functions. -- ROOT Functions
-extern fn RGFW_init(className: [*:0]const u8, flags: u8) i32;
+// Callback functions
+pub const GenericFunc = *const fn (e: *Event) void; // Event Callback
+pub const Callbacks = extern struct {
+    arr: [EventType]GenericFunc,
+};
+pub const DebugFunc = *const fn (info: *DebugInfo) void; // DebugCallback
+pub const ConvertImageDataFunc = *const fn (dest_data: [*c]u8, src_data: [*c]u8, src_layout: *ColorLayout, dest_layout: *ColorLayout, count: usize) void;
+
+// Start External functions. -- Data Functions
+extern fn RGFW_alloc(size: usize) *anyopaque;
+extern fn RGFW_free(ptr: *anyopaque) void;
+extern fn RGFW_sizeofWindow() usize;
+extern fn RGFW_sizeofWindowSrc() usize;
+extern fn RGFW_usingWayland() bool;
+extern fn RGFW_getLayerOSX() *anyopaque;
+extern fn RGFW_getDisplay_X11() *anyopaque;
+extern fn RGFW_getDisplay_Wayland() *anyopaque;
+extern fn RGFW_moveToMacOSResourceDir() void;
+
+// Image Functions
+extern fn RGFW_copyImageData(dest_data: [*c]u8, w: i32, h: i32, dest_format: Format, src_data: [*c]u8, src_format: Format, func: ConvertImageDataFunc) void;
+extern fn RGFW_sizeofNativeImage() usize;
 extern fn RGFW_convertImageDataFunc(dest_data: *u8, src_data: *u8, srcLayout: *const ColorLayout, destLayout: *const ColorLayout, count: usize) *anyopaque;
+
+// Surface Functions
+extern fn RGFW_sizeofSurface() usize;
+extern fn RGFW_nativeFormat() Format;
+extern fn RGFW_createSurface(data: [*c]u8, w: i32, h: i32, format: Format) *Surface;
+extern fn RGFW_createSurfacePtr(data: [*c]u8, w: i32, h: i32, format: Format, surface: *Surface) bool;
+extern fn RGFW_surface_getNativeImage(surface: *Surface) *NativeImage;
+extern fn RGFW_surface_free(surface: *Surface) void;
+extern fn RGFW_surface_freePtr(surface: *Surface) void;
+
+// Mouse Functions
+extern fn RGFW_createMouse(data: [*c]u8, w: i32, h: i32, format: Format) *anyopaque;
+extern fn RGFW_createMouseStandard(mouse: MouseIcon) *anyopaque;
+extern fn RGFW_freeMouse(mouse: *anyopaque) void;
+
+// Monitor Functions
+
+// Core Functions
+extern fn RGFW_init(className: [*:0]const u8, flags: u8) i32;
 
 // Window functions
 extern fn RGFW_createWindow(name: [*:0]const u8, x: i32, y: i32, w: i32, h: i32, flags: u8) *Window;
