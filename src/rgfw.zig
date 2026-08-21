@@ -1,9 +1,10 @@
 const std = @import("std");
 
 // Public functions
-pub fn init(className: [*:0]const u8, flags: u8) void {
-    const ret = RGFW_init(className, flags);
-    std.debug.print("Result: {d}\n", .{ret});
+pub fn init(className: [*:0]const u8, flags: InitFlags) !void {
+    const ret = RGFW_init(className, @bitCast(flags));
+    if (ret != 0) return error.RGFW_InitFailed;
+    return;
 }
 
 // Window functions
@@ -12,12 +13,14 @@ pub fn createWindow(name: [*:0]const u8, x: i32, y: i32, w: i32, h: i32, flags: 
 }
 
 // Enums
-const InitFlags = enum(u8) {
-    OpenGL = RGFW_BIT(0),
-    EGL = RGFW_BIT(1),
-    Vulkan = RGFW_BIT(2),
-    X11 = RGFW_BIT(3),
+pub const InitFlags = packed struct(u8) {
+    OpenGL: bool = false,
+    EGL: bool = false,
+    Vulkan: bool = false,
+    X11: bool = false,
+    _padding: u4 = 0,
 };
+
 const Format = enum(u8) {
     RGB8 = 0,
     BGR8,

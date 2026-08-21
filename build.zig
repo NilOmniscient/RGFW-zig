@@ -24,12 +24,18 @@ pub fn build(b: *std.Build) void {
     });
     rgfw_cmod.addIncludePath(rgfw_src.path(""));
 
-    // Need to link required libs
-    rgfw_cmod.linkSystemLibrary("X11", .{});
-    rgfw_cmod.linkSystemLibrary("m", .{});
-    rgfw_cmod.linkSystemLibrary("Xrandr", .{});
-    rgfw_cmod.linkSystemLibrary("GL", .{});
-
+    if (target.result.os.tag == .windows) {
+        rgfw_cmod.linkSystemLibrary("opengl32", .{});
+        rgfw_cmod.linkSystemLibrary("gdi32", .{});
+    } else if (target.result.os.tag == .macos) {
+        rgfw_cmod.linkFramework("Cocoa", .{});
+    } else {
+        // Need to link required libs
+        rgfw_cmod.linkSystemLibrary("X11", .{});
+        rgfw_cmod.linkSystemLibrary("m", .{});
+        rgfw_cmod.linkSystemLibrary("Xrandr", .{});
+        rgfw_cmod.linkSystemLibrary("GL", .{});
+    }
     const exe = b.addExecutable(.{
         .name = "RGFW_test",
         .root_module = b.createModule(.{
